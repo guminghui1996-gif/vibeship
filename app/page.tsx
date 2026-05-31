@@ -2,13 +2,20 @@ export default function Home() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-zinc-50 px-6 text-zinc-950">
       <section className="w-full max-w-2xl">
-        <p className="text-sm font-medium text-zinc-500">第 1 阶段</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-normal sm:text-5xl">
+        <h1 className="text-4xl font-semibold tracking-normal sm:text-5xl">
           VibeShip
         </h1>
         <p className="mt-5 text-lg leading-8 text-zinc-600">
-          一个干净的 Next.js App Router + Tailwind 空壳已经就绪。
+          记录从零开始公开构建 VibeShip 的每一天。
         </p>
+        <a
+          className="mt-8 inline-flex items-center rounded-md bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800"
+          href="https://github.com/guminghui1996-gif/vibeship/blob/main/logs/2026-05-31.md"
+          rel="noreferrer"
+          target="_blank"
+        >
+          Day 1 日志（2026-05-31）
+        </a>
       </section>
     </main>
   );
