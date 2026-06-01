@@ -1,21 +1,48 @@
+import { readdir, readFile } from "node:fs/promises";
+import path from "node:path";
 import Link from "next/link";
 
-const logs = [
-  {
-    date: "2026-06-01",
-    title: "Day 2 日志（2026-06-01）",
-    href: "/logs/2026-06-01",
-    summary: "Add /logs Page"
-  },
-  {
-    date: "2026-05-31",
-    title: "Day 1 日志（2026-05-31）",
-    href: "/logs/2026-05-31",
-    summary: "From Zero to Deployed"
-  }
-];
+type LogItem = {
+  date: string;
+  href: string;
+  title: string;
+};
 
-export default function LogsPage() {
+const logFilePattern = /^(\d{4}-\d{2}-\d{2})\.md$/;
+
+async function getLogs(): Promise<LogItem[]> {
+  const logsDir = path.join(process.cwd(), "logs");
+  const entries = await readdir(logsDir, { withFileTypes: true });
+  const files = entries
+    .filter((entry) => entry.isFile() && logFilePattern.test(entry.name))
+    .map((entry) => {
+      const match = entry.name.match(logFilePattern);
+      return {
+        date: match?.[1] ?? "",
+        fileName: entry.name
+      };
+    })
+    .filter((entry) => entry.date);
+
+  const logs = await Promise.all(
+    files.map(async (file) => {
+      const markdown = await readFile(path.join(logsDir, file.fileName), "utf8");
+      const title = markdown.match(/^##\s+(.+)$/m)?.[1] ?? `日志 ${file.date}`;
+
+      return {
+        date: file.date,
+        href: `/logs/${file.date}`,
+        title
+      };
+    })
+  );
+
+  return logs.sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export default async function LogsPage() {
+  const logs = await getLogs();
+
   return (
     <main className="min-h-screen bg-zinc-50 px-6 py-12 text-zinc-950">
       <section className="mx-auto w-full max-w-3xl">
@@ -47,7 +74,7 @@ export default function LogsPage() {
                 {log.title}
               </h2>
               <p className="mt-2 text-sm leading-6 text-zinc-600">
-                {log.summary}
+                查看 {log.date} 的公开构建复盘
               </p>
             </Link>
           ))}
