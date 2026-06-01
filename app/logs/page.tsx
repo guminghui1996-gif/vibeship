@@ -2,6 +2,12 @@ import Link from "next/link";
 
 const logs = [
   {
+    date: "2026-06-01",
+    title: "Day 2 日志（2026-06-01）",
+    href: "/logs/2026-06-01",
+    summary: "Add /logs Page"
+  },
+  {
     date: "2026-05-31",
     title: "Day 1 日志（2026-05-31）",
     href: "/logs/2026-05-31",
