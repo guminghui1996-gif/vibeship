@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import Markdown from "@/app/components/Markdown";
-import { saveLogAction, type SaveLogState } from "./actions";
-
-const initialState: SaveLogState = {};
+import { supabase } from "@/lib/supabaseClient";
 
 function getToday() {
   return new Date().toLocaleDateString("en-CA");
@@ -18,7 +16,7 @@ function listFromText(value: string) {
     .filter(Boolean);
 }
 
-function buildPreview({
+function buildMarkdown({
   keyLearnings,
   title,
   todayShipped,
@@ -50,24 +48,25 @@ function buildPreview({
     "",
     "### Tomorrow plan (3)",
     "",
-    ...(plan.length ? plan.map((item, index) => `${index + 1}) ${item}`) : ["1) "])
+    ...(plan.length ? plan.map((item, index) => `${index + 1}) ${item}`) : ["1) "]),
+    ""
   ].join("\n");
 }
 
 export default function NewLogForm() {
-  const [state, formAction, isPending] = useActionState(
-    saveLogAction,
-    initialState
-  );
   const [date, setDate] = useState(getToday);
   const [title, setTitle] = useState("VibeShip Daily Log");
   const [todayShipped, setTodayShipped] = useState("");
   const [keyLearnings, setKeyLearnings] = useState("");
   const [tomorrowPlan, setTomorrowPlan] = useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [savedHref, setSavedHref] = useState("");
+  const [isPending, setIsPending] = useState(false);
 
   const preview = useMemo(
     () =>
-      buildPreview({
+      buildMarkdown({
         keyLearnings,
         title,
         todayShipped,
@@ -76,9 +75,48 @@ export default function NewLogForm() {
     [keyLearnings, title, todayShipped, tomorrowPlan]
   );
 
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setMessage("");
+    setSavedHref("");
+    setIsPending(true);
+
+    const {
+      data: { user },
+      error: userError
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setIsPending(false);
+      setError("请先登录，再保存日志。");
+      return;
+    }
+
+    const { error: saveError } = await supabase.from("logs").upsert(
+      {
+        content_md: preview,
+        log_date: date,
+        title,
+        user_id: user.id
+      },
+      { onConflict: "user_id,log_date" }
+    );
+
+    setIsPending(false);
+
+    if (saveError) {
+      setError(saveError.message);
+      return;
+    }
+
+    setSavedHref(`/logs/db/${date}`);
+    setMessage("已保存到 Supabase。");
+  }
+
   return (
     <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <form action={formAction} className="space-y-5">
+      <form className="space-y-5" onSubmit={handleSubmit}>
         <label className="block">
           <span className="text-sm font-medium text-zinc-700">日期</span>
           <input
@@ -151,8 +189,14 @@ export default function NewLogForm() {
             disabled={isPending}
             type="submit"
           >
-            {isPending ? "保存中..." : "保存日志"}
+            {isPending ? "保存中..." : "保存到 Supabase"}
           </button>
+          <Link
+            className="text-sm font-medium text-zinc-600 transition hover:text-zinc-950"
+            href="/login"
+          >
+            登录
+          </Link>
           <Link
             className="text-sm font-medium text-zinc-600 transition hover:text-zinc-950"
             href="/logs"
@@ -161,18 +205,25 @@ export default function NewLogForm() {
           </Link>
         </div>
 
-        {state.message ? (
+        {message ? (
           <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
-            <p>{state.message}</p>
-            <Link className="mt-2 inline-block font-medium underline" href="/logs">
-              去日志列表查看
-            </Link>
+            <p>{message}</p>
+            <div className="mt-2 flex flex-wrap gap-3">
+              <Link className="font-medium underline" href="/logs">
+                去日志列表查看
+              </Link>
+              {savedHref ? (
+                <Link className="font-medium underline" href={savedHref}>
+                  打开详情页
+                </Link>
+              ) : null}
+            </div>
           </div>
         ) : null}
 
-        {state.error ? (
+        {error ? (
           <p className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {state.error}
+            {error}
           </p>
         ) : null}
       </form>

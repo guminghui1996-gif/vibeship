@@ -18,7 +18,7 @@ export default function NewLogPage() {
           </h1>
           <p className="mt-4 text-base leading-7 text-zinc-600">
             填写今天的构建记录，右侧会实时生成 Markdown 预览。保存后会写入
-            `logs/YYYY-MM-DD.md`，日志列表会自动读取它。
+            Supabase，并在日志列表的 DB Logs 区块出现。
           </p>
         </header>
 

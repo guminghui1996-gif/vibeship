@@ -14,8 +14,11 @@ export default function Home() {
           记录从零开始公开构建 VibeShip 的每一天。
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link className={buttonClass} href="/logs/2026-05-31">
-            Day 1 日志（2026-05-31）
+          <Link className={buttonClass} href="/login">
+            登录
+          </Link>
+          <Link className={buttonClass} href="/new">
+            写日志
           </Link>
           <Link className={buttonClass} href="/logs">
             日志列表
