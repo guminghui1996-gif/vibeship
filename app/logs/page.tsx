@@ -1,6 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import Link from "next/link";
+import DbLogs from "./DbLogs";
 
 type LogItem = {
   date: string;
@@ -58,27 +59,40 @@ export default async function LogsPage() {
             日志列表
           </h1>
           <p className="mt-4 text-base leading-7 text-zinc-600">
-            这里记录 VibeShip 每一天的公开构建复盘。
+            优先展示登录用户保存在 Supabase 的日志；公开 Markdown 归档保留在页面下方。
           </p>
         </header>
 
-        <div className="mt-8 divide-y divide-zinc-200 rounded-md border border-zinc-200 bg-white">
-          {logs.map((log) => (
-            <Link
-              className="block p-5 transition hover:bg-zinc-50"
-              href={log.href}
-              key={log.date}
-            >
-              <p className="text-sm font-medium text-zinc-500">{log.date}</p>
-              <h2 className="mt-2 text-xl font-semibold tracking-normal text-zinc-950">
-                {log.title}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-zinc-600">
-                查看 {log.date} 的公开构建复盘
-              </p>
-            </Link>
-          ))}
-        </div>
+        <DbLogs />
+
+        <section className="mt-12">
+          <header>
+            <h2 className="text-2xl font-semibold tracking-normal">
+              Archive (Public)
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-600">
+              这个区块来自仓库里的 <code>logs/*.md</code> 文件，无需登录即可浏览。
+            </p>
+          </header>
+
+          <div className="mt-6 divide-y divide-zinc-200 rounded-md border border-zinc-200 bg-white">
+            {logs.map((log) => (
+              <Link
+                className="block p-5 transition hover:bg-zinc-50"
+                href={log.href}
+                key={log.date}
+              >
+                <p className="text-sm font-medium text-zinc-500">{log.date}</p>
+                <h3 className="mt-2 text-xl font-semibold tracking-normal text-zinc-950">
+                  {log.title}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-zinc-600">
+                  查看 {log.date} 的公开构建复盘
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
       </section>
     </main>
   );
